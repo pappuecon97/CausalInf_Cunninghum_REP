@@ -1,0 +1,102 @@
+---
+title: "Assignment 1b"
+author: "Md Johirul Islam"
+date: "8/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Programming assignment 1b
+
+#Problem_2
+
+**a. a.	Create a dataset with 10,000 observations where Y1 and Y0 differ across the population.  Make the ATE equal to 10.** 
+
+#create 10000 observations where ATE is 10
+
+library(tidyverse)
+library(dplyr)
+
+Y1 <- rnorm(10000, mean = 1000, sd = 20)
+
+Y0 <- rnorm(10000, mean = 990, sd= 40)
+
+#ATE is approximately 10
+mean(Y1-Y0)
+
+
+**b.	Use the perfect doctor example to assign treatment to each unit. Decompose the SDO, as we did before, into selection bias and weighted heterogeneous treatment effect bias. **
+     *Hint: use randomization for Y1 and Y0 such that you have a treatment effect of 10 + Y0 for the Y1 variable.*
+
+#Treatment effect
+TE <- Y1-Y0
+
+#Assigning treatment as a 'perfect doctor'
+
+D <- ifelse(TE >=0, 1, ifelse(TE <0 , 0, "no"))
+
+#convert D into 'numeric'
+
+D <- as.numeric(D)
+
+#creating new data frame
+
+Data <- data.frame(Y1, Y0, TE, D)
+
+#recall the decomposition of SDO
+**SDO = ATE + E[Y^0|D=1] - E[Y^0|D=0] + (1-\pi)(ATT-ATU)**
+
+# calculate SDO, ATE, and heterogeneous treatment effect
+                            
+                    
+                    
+SDO <- list("ATE" = mean(TE),
+                         "Selection bias" = mean(Y0[D==1] - mean(Y0[D==0])),
+                         "one.minus.pi" = length(D[D==0])/length(D),
+                         "ATT" = mean(TE[D==1]),
+                         "ATU" = mean(TE[D==0]))
+                         
+**c.	Now use randomization for D to show independence**
+
+set.seed(1993)
+
+Data$D.rand <- sample(x=c(1,0), replace=TRUE)
+
+**d.	Show that E[Y1|D=1] = E[Y1|D=0].**
+# let A1 = E[Y1|D=1]
+#and A2 = E[Y1|D0]
+
+A1<- mean(Y1[D.rand==1])
+A2<- mean(Y1[D.rand==0])
+
+#Now,
+A1-A2     #we can see that they are almost equal.
+
+
+**e.	Show that E[Y0|D=1] = E[Y0|D=0].**
+
+#Let, A3 = E[Y0|D=1],
+#and, A4= E[Y0|D=0]
+
+A3<- mean(Y0[D.rand==1])
+A4<- mean(Y0[D.rand==0])
+
+#Now, we can check whether A3 and A4 are equal or not.
+
+A3-A4     #we can see they are nearly equal.
+
+**f.	So if that is the case in c and d, then why isn’t the case that E[Y1|D=1] = E[Y0|D=0]? What’s the different reasons for (a) vs (b) and (c)?**
+
+
+*This is because, while independence means that there is no selection bias, it does not rule out the possibility of differences in potential outcomes between the treated and non-treated groups, given that we are comparing separate treatment universes. If the SDO is 0, then will only be equal.*
+
+
+**g.	Put in your own words what independence means.** 
+    **Recall: (Y1,Y0) _||_ D is the math formula for independence.**
+
+
+*It means, the treatment has been assigned to units at random, with no concern for their prospective outcomes. This assures that the treatment and control groups' mean-potential-outcomes are the same.*
+
